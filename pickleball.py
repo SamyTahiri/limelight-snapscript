@@ -35,32 +35,39 @@ def runPipeline(image, llrobot):
         # in pixels
         min_width_algae = 75  # 100
         min_height_algae = 75  # 100
+        max_width_algae = 125  # Maximum width in pixels
+        max_height_algae = 125  # Maximum height in pixels
 
         valid_contours = []
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
-            if w >= min_width_algae and h >= min_height_algae:
+            if (
+                w >= min_width_algae
+                and h >= min_height_algae
+                and w <= max_width_algae
+                and h <= max_height_algae
+            ):
                 valid_contours.append(contour)
 
-            if valid_contours:
-                # cv2.drawContours(image, contours, -1, [255, 255, 255], 1)
+        if valid_contours:
+            # cv2.drawContours(image, contours, -1, [255, 255, 255], 1)
 
-                # Record the largest contour
-                largestContour = max(contours, key=cv2.contourArea)
+            # Record the largest contour
+            largestContour = max(valid_contours, key=cv2.contourArea)
 
-                # Get the axis aligned bounding box
-                x, y, w, h = cv2.boundingRect(largestContour)
+            # Get the axis aligned bounding box
+            x, y, w, h = cv2.boundingRect(largestContour)
 
-                # Draw the bounding box
-                cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 255), 2)
+            # Draw the bounding box
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 255), 2)
 
-                # Data to send back to the robot
-                llpython = [
-                    x,
-                    y,
-                    w,
-                    h,
-                ]  # Return the largest contour for the LL crosshair, the modified image, and custom robot data
+            # Data to send back to the robot
+            llpython = [
+                x,
+                y,
+                w,
+                h,
+            ]  # Return the largest contour for the LL crosshair, the modified image, and custom robot data
     return largestContour, image, llpython
 
 
