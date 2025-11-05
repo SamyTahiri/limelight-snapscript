@@ -6,8 +6,8 @@ def runPipeline(image, llrobot):
     img_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)  # Define the HSV range
 
     # Color ranges
-    lower_algae = np.array([54, 25, 70])
-    upper_algae = np.array([74, 53, 100])
+    lower_algae = np.array([52, 71, 30])
+    upper_algae = np.array([72, 100, 91])
     lower_algae_cv = np.array(
         [
             # Convert standard HSV to opencv HSV
