@@ -6,9 +6,9 @@
 - Resolution: `1280x960 40fps`
 - Exposure (0.01ms): `1500`
 - Black Level Offset: `0`
-- Sensor Gain: `20`
-- Red Balance: `1500`
-- Blue Balance: `1400`
+- Sensor Gain: `45`
+- Red Balance: `1350`
+- Blue Balance: `1700`
 
 ## Install requirements
 
