@@ -1,9 +1,16 @@
 import cv2
 import numpy as np
 
+"""
+Camera space
+- X: Right
+- Y: Down
+- Z: Forward
+"""
 preview = False
 
-CAMERA_HEIGHT_M = 0.2159  # camera height above ground (meters)
+# 0.2066749994
+CAMERA_HEIGHT_M = 0.206675  # camera height above ground (meters)
 CAMERA_PITCH_DEG = 0  # camera downward pitch (+ degrees)
 CAMERA_X_M = 0.0  # camera X offset in robot frame (forward)
 CAMERA_Y_M = CAMERA_HEIGHT_M  # camera Y in world (up) if using Y-up
@@ -12,10 +19,15 @@ CAMERA_Z_M = 0.0  # camera Z offset (left/right) in robot frame
 # Intrinsics from baseline calibration at a known resolution
 CALIB_WIDTH = 1280  # baseline calibration image width (px)
 CALIB_HEIGHT = 960  # baseline calibration image height (px)
+# Baseline intrinsic matrix for CALIB_WIDTH x CALIB_HEIGHT
 K_BASE = np.array(
-    [[1038.543, 0.000, 609.345], [0.000, 1037.537, 469.070], [0.000, 0.000, 1.000]],
+    [
+        [1038.543 * 0.67, 0.000, 609.345],
+        [0.000, 1037.537 * 0.67, 469.070],
+        [0.000, 0.000, 1.000],
+    ],
     dtype=np.float32,
-)  # baseline intrinsic matrix for CALIB_WIDTH x CALIB_HEIGHT
+)
 SCALE_INTRINSICS = True  # scale intrinsics to current frame size
 
 # HSV threshold [H,S,V] in percent or H half-range
@@ -23,8 +35,8 @@ LOWER_HSV_PERCENT = np.array([64, 40, 35]) if not preview else np.array([60, 50,
 UPPER_HSV_PERCENT = np.array([85, 98, 90]) if not preview else np.array([70, 70, 90])
 
 # Contour size threshold
-MIN_TARGET_WIDTH_PX = 20
-MIN_TARGET_HEIGHT_PX = 20
+MIN_TARGET_WIDTH_PX = 8
+MIN_TARGET_HEIGHT_PX = 8
 MAX_TARGET_WIDTH_PX = 300
 MAX_TARGET_HEIGHT_PX = 300
 
@@ -132,7 +144,7 @@ def runPipeline(image, llrobot):
             dy = float(ray_camera[1, 0])  # positive Y is down in camera frame
             dz = float(ray_camera[2, 0])  # forward depth
 
-            print(f"Ray direction: dx={dx:.3f}, dy={dy:.3f}, dz={dz:.3f}")
+            # print(f"Ray direction: dx={dx:.3f}, dy={dy:.3f}, dz={dz:.3f}")
 
             # Intersect with ground plane
             # Camera is at height CAMERA_HEIGHT_M above ground
@@ -140,21 +152,16 @@ def runPipeline(image, llrobot):
             # Ray equation: Y_world = CAMERA_HEIGHT_M - dy*t (since camera Y points down)
             # At ground: 0 = CAMERA_HEIGHT_M - dy*t => t = CAMERA_HEIGHT_M / dy
 
-            if dy > 1e-6:  # Ray pointing downward (positive dy in camera frame)
+            if dy > 1e-6:
                 t = CAMERA_HEIGHT_M / dy
                 if t > 0.0:
-                    # Calculate world coordinates
-                    # In world frame: X=forward, Y=up, Z=right
-                    # Camera X (right) -> World Z (right)
-                    # Camera Z (forward) -> World X (forward)
-                    # Camera Y (down) -> World -Y (up)
-                    X_m = CAMERA_X_M + dz * t  # forward distance
-                    Z_m = CAMERA_Z_M + dx * t  # lateral distance
+                    X_m = CAMERA_X_M + dx * t  # Right in camera → Side in world
+                    Z_m = CAMERA_Z_M + dz * t
 
                     # Pack results: [hasTarget, u, v, X_m, Z_m, w, h, area]
                     llpython = [1, int(u), int(v), X_m, Z_m, int(w), int(h), area]
                     print(
-                        f"Found intersection at World: (X={X_m:.3f}m, Z={Z_m:.3f}m), Pixel: ({u}, {v}), size ({w}x{h}), area: {area:.1f}"
+                        f"Found intersection at World: (X={X_m:.2f}m, Z={Z_m:.2f}m), Pixel: ({u}, {v}), size: ({w}x{h}), area: {area:.1f}"
                     )
                 else:
                     print(f"Negative t={t:.3f}, no valid intersection")
