@@ -35,8 +35,8 @@ def runPipeline(image, llrobot):
         # in pixels
         min_width_algae = 75  # 100
         min_height_algae = 75  # 100
-        max_width_algae = 125  # Maximum width in pixels
-        max_height_algae = 125  # Maximum height in pixels
+        max_width_algae = 300  # Maximum width in pixels
+        max_height_algae = 300  # Maximum height in pixels
 
         valid_contours = []
         for contour in contours:
@@ -55,20 +55,17 @@ def runPipeline(image, llrobot):
             # Record the largest contour
             largestContour = max(valid_contours, key=cv2.contourArea)
 
-            # Get the axis aligned bounding box
-            x, y, w, h = cv2.boundingRect(largestContour)
-
-            # Draw the bounding box
-            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 255), 2)
-
-            # Data to send back to the robot
+            for c in valid_contours:
+                x, y, w, h = cv2.boundingRect(c)
+                cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 255), 2)
             llpython = [
                 x,
                 y,
                 w,
                 h,
-            ]  # Return the largest contour for the LL crosshair, the modified image, and custom robot data
-    return largestContour, image, llpython
+            ]
+
+    return valid_contours, image, llpython
 
 
 cap = cv2.VideoCapture(0)
